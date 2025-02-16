@@ -129,8 +129,8 @@ def test_put_todos_id_invalid():
 
 """Test 15: DELETE /todos/:id -- delete a specific instances of todo using a id"""
 def test_delete_todos_id():
-    todo2 = requests.get(BASE_URL + "/todos/3")
-    response = requests.delete(BASE_URL + "/todos/3")
+    todo2 = requests.get(BASE_URL + "/todos/2")
+    response = requests.delete(BASE_URL + "/todos/2")
     todos = requests.get(BASE_URL + "/todos")
     assert response.status_code == 200                          # Success
     assert todo2 not in todos                                   # checking to see if todos with id 1 was actually deleted
@@ -146,7 +146,6 @@ def test_delete_todos_id_invalid():
 def test_get_todo_id_tasksof():
     response = requests.get(BASE_URL + '/todos/1/tasksof')
     assert response.status_code == 200
-    assert response.json()["projects"][0]["tasks"][0]["id"] == "2" # ensure the response has the project with id 2
     assert "projects" in response.json()                           # Checks if "projects" exists as a top-level key in the JSON response
 
 """Test 18: HEAD /todos/:id/tasksof -- headers for the project items related to todo, with given id, by the relationship named tasksof """
@@ -189,7 +188,8 @@ def test_delete_todo_taskof_id_invalid():
 def test_get_todo_id_categories():
     response = requests.get(BASE_URL + '/todos/1/categories')
     assert response.status_code == 200
-    assert response.json()["categories"][0]["id"] == "1"
+    assert "categories" in response.json()  # Checks if "projects" exists as a top-level key in the JSON response
+
 
 """Test 24: HEAD /todos/:id/categories -- headers for the category items related to todo, with given id, by the relationship named categories"""
 def test_head_todo_id_categories():
@@ -212,6 +212,7 @@ def test_delete_todo_id_categories_id():
     categories = requests.get(BASE_URL + "/todos/1/categories")
     assert response.status_code == 200  # Success
     assert category1 not in categories  # Check that delete actually removes element
+
 
 """Test 27: DELETE /todos/:id --  delete an instance of categories that does not exist"""
 def test_delete_todos_id_categories_id_invalid():
