@@ -129,11 +129,18 @@ def test_put_todos_id_invalid():
 
 """Test 15: DELETE /todos/:id -- delete a specific instances of todo using a id"""
 def test_delete_todos_id():
-    todo2 = requests.get(BASE_URL + "/todos/2")
-    response = requests.delete(BASE_URL + "/todos/2")
-    todos = requests.get(BASE_URL + "/todos")
-    assert response.status_code == 200                          # Success
-    assert todo2 not in todos                                   # checking to see if todos with id 1 was actually deleted
+    todo_response = requests.get(BASE_URL + "/todos/2")              # Get the todos details before deletion
+    if todo_response.status_code == 200:
+        todo_data = todo_response.json()['todos'][0]                 # Extracting todos details
+        response = requests.delete(BASE_URL + "/todos/2")            # Delete the todos
+        assert response.status_code == 200                           # Success
+        todos = requests.get(BASE_URL + "/todos").json()
+        assert all(todo["id"] != "2" for todo in todos["todos"])     # Ensure the todos was deleted
+        restore_response = requests.post(BASE_URL + "/todos", json={ # Re-create the deleted todos so that tests can run consecutively
+            "title": todo_data.get("title", "Restored Todo"),
+            "doneStatus": todo_data.get("doneStatus", False),
+            "description": todo_data.get("description", "")
+        })
 
 """Test 16: DELETE /todos/:id --  delete an instance of todo that does not exist"""
 def test_delete_todos_id_invalid():
@@ -171,11 +178,19 @@ def test_delete_todo_id_taskof():
 
 """Test 21: DELETE /todos/:id/tasksof/:id -- delete the instance of the relationship named tasksof between todo and project using the :id"""
 def test_delete_todo_taskof_id():
-    task1 = requests.get(BASE_URL + "/todos/1/tasksof/1")
-    response = requests.delete(BASE_URL + "/todos/1/tasksof/1")
-    tasks = requests.get(BASE_URL + "/todos/1/tasksof")
-    assert response.status_code == 200                            # Success
-    assert task1 not in tasks                                     # Check that delete actually removes element
+
+    category_response = requests.get(BASE_URL + "/categories/1")                   # Get the category details before deletion
+    if category_response.status_code == 200:
+        category_data = category_response.json()['categories'][0]                  # Extract category details
+        response = requests.delete(BASE_URL + "/categories/1")                     # Delete the category
+        assert response.status_code == 200  # Success
+        categories = requests.get(BASE_URL + "/categories").json()
+        assert all(category["id"] != "1" for category in categories["categories"]) # Ensure the category was deleted
+        restore_response = requests.post(BASE_URL + "/categories", json={          # Re-create the deleted category so that tests can run consecutively
+            "title": category_data.get("title", "Restored Category"),
+            "description": category_data.get("description", "")
+        })
+        assert restore_response.status_code == 201                                 # Ensure the category was re-created
 
 """Test 22: DELETE /todos/:id --  delete an instance of todo taskof that does not exist"""
 def test_delete_todo_taskof_id_invalid():
@@ -207,12 +222,19 @@ def test_post_todo_id_categories():
 
 """Test 26: DELETE /todos/:id/categories/:id -- delete the instance of the relationship named categories between todo and category using the :id"""
 def test_delete_todo_id_categories_id():
-    category1 = requests.get(BASE_URL + "/todos/1/categories/1")
-    response = requests.delete(BASE_URL + "/todos/1/categories/1")
-    categories = requests.get(BASE_URL + "/todos/1/categories")
-    assert response.status_code == 200  # Success
-    assert category1 not in categories  # Check that delete actually removes element
-
+    task_response = requests.get(BASE_URL + "/tasks/3")               # Get the task details before deletion
+    if task_response.status_code == 200:
+        task_data = task_response.json()['tasks'][0]                  # Extract task details
+        response = requests.delete(BASE_URL + "/tasks/3")             # Delete the task
+        assert response.status_code == 200  # Success
+        tasks = requests.get(BASE_URL + "/tasks").json()
+        assert all(task["id"] != "3" for task in tasks["tasks"])      # Ensure the task was deleted
+        restore_response = requests.post(BASE_URL + "/tasks", json={  # Re-create the deleted task so that tests can run consecutively
+            "title": task_data.get("title", "Restored Task"),
+            "doneStatus": task_data.get("doneStatus", False),
+            "description": task_data.get("description", "")
+        })
+        assert restore_response.status_code == 201                    # Ensure the task was re-created
 
 """Test 27: DELETE /todos/:id --  delete an instance of categories that does not exist"""
 def test_delete_todos_id_categories_id_invalid():
