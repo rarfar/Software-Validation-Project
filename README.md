@@ -13,3 +13,5 @@ Requirements:
  - import xml.etree.ElementTree 
  - pip install pytest-random-order
 # Setup
+To execute the tests, navigate to the Softwate-Validation-Project directory in the terminal. Use pytest -v to run all tests.\
+To run them in a random order, install pytest-random-order with pip install pytest-random-order, then execute pytest -v --random-order.
