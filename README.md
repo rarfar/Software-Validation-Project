@@ -22,8 +22,8 @@ To execute the tests, navigate to the Softwate-Validation-Project directory in t
 To run them in a random order, install pytest-random-order with pip install pytest-random-order, then execute pytest -v --random-order.\
 \
 You can run these tests consecutively, however, these tests add, alter and delete many elements in this app. To restore them to\
-the default elements. You must shutdown the app and reboot it again from your console following the same steps as above.\
+the default elements, you must shutdown the app and reboot it again from your console following the same steps as above.\
 \
-Enter http://localhost:4567/shutodwn to terminate the app.\
+Enter http://localhost:4567/shutdown to terminate the app.
 
 
