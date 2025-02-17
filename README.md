@@ -13,5 +13,9 @@ Requirements:
  - import xml.etree.ElementTree 
  - pip install pytest-random-order
 # Setup
+To launch the rest api todo list manager, enter this command from your console while in the Application_Being_Tested directory:\
+ java-jar runTodoManagerRestAPI-1.5.5.jar \
 To execute the tests, navigate to the Softwate-Validation-Project directory in the terminal. Use pytest -v to run all tests.\
-To run them in a random order, install pytest-random-order with pip install pytest-random-order, then execute pytest -v --random-order.
+To run them in a random order, install pytest-random-order with pip install pytest-random-order, then execute pytest -v --random-order.\
+
+
