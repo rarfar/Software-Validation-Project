@@ -23,7 +23,7 @@ Example JSON Input to API calls
 3. execute: Invoke-WebRequest -Uri "http://localhost:4567/todos" `
   -Method Post `
   -Headers @{"Content-Type" = "application/json"} `
-  -Body '{"title": "New Task", "doneStatus": "notBoolean", "description": "Sample task"}'
+  -Body '{"title": "ur sint occaecat cup", "doneStatus": "false", "description": "m dolore eu fugiat n"}'
 4. Observe error: Invoke-WebRequest : The remote server returned an error: (400) Bad Request.
 
  
