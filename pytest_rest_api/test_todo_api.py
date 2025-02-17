@@ -2,6 +2,9 @@ import requests
 import pytest
 import xml.etree.ElementTree as ET
 
+
+#Ryan McGregor - 260868511 - ryan.mcgregor@mail.mcgill.ca
+
 BASE_URL = "http://localhost:4567"
 
 """Test 1: to ensure we can call endpoint/base URL successfully """
@@ -112,7 +115,7 @@ def test_put_todos_id():
         "doneStatus": True,
         "description": "new desc 12",
     }
-    response = requests.post(BASE_URL + "/todos/1", json=payload)
+    response = requests.put(BASE_URL + "/todos/1", json=payload)
     assert response.status_code == 200                           # success
     assert 'title' in response.json()                            # is checking whether the JSON response from the API contains a key named "title"
     assert response.json()['title'] == 'new title test 12'       # ensure title updated correctly
@@ -270,16 +273,23 @@ def test_xml_post_todos():
                 </todo>""", headers={'Content-Type': 'application/xml'})
     assert response.status_code == 201
 
+"""Test 31: XML - POST /todos -- malformed XML"""
+def test_xml_post_todos_invalid():                        # data is missing opening <todo>
+    response = requests.post(BASE_URL + "/todos",data=""" 
+                    <doneStatus>true</doneStatus>
+                    <title>pi is 3.14</title>
+                    <description>purple</description>
+                </todo>""", headers={'Content-Type': 'application/xml'})
+    assert response.status_code == 400    # is malformed and shouldn't work
 
-
-
-
-
-
-
-
-
-
-
-
-
+"""Test 32: DELETE /todos/:id --attempting to delete an object which has already been deleted."""
+def test_delete_todos_id_twice():
+    todo_response = requests.get(BASE_URL + "/todos/2")              # Get the todos details before deletion
+    if todo_response.status_code == 200:
+        todo_data = todo_response.json()['todos'][0]                 # Extracting todos details
+        response = requests.delete(BASE_URL + "/todos/2")            # Delete the todos
+        assert response.status_code == 200                           # Success
+        todos = requests.get(BASE_URL + "/todos").json()
+        assert all(todo["id"] != "2" for todo in todos["todos"])     # Ensure the todos was deleted
+        response2 = requests.delete(BASE_URL + "/todos/2")  # Delete the todos again
+        assert response2.status_code == 404                          # error missing
