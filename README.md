@@ -25,5 +25,8 @@ You can run these tests consecutively, however, these tests add, alter and delet
 the default elements, you must shutdown the app and reboot it again from your console following the same steps as above.\
 \
 Enter http://localhost:4567/shutdown to terminate the app.
-
+# Roles
+TODOS       - Ryan McGregor, 260 868 511
+PROJECTS    - Emmy Song, 261 049 871
+CATEGORIES  - Brenden Trudeau, 260 941 695
 
