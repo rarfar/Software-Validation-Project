@@ -26,7 +26,7 @@ the default elements, you must shutdown the app and reboot it again from your co
 \
 Enter http://localhost:4567/shutdown to terminate the app.
 # Roles
-TODOS       - Ryan McGregor, 260 868 511
-PROJECTS    - Emmy Song, 261 049 871
+TODOS       - Ryan McGregor, 260 868 511 \
+PROJECTS    - Emmy Song, 261 049 871 \
 CATEGORIES  - Brenden Trudeau, 260 941 695
 
