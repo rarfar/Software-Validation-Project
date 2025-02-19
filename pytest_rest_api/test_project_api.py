@@ -35,7 +35,7 @@ def test_post_projects_full_payload():
         "description": "This is a test project"
     }
     response = requests.post(BASE_URL + "/projects", json=payload)
-    assert response.status_code == 201  # The request succeeded, and a new resource was created.
+    assert response.status_code == 201  #
     json_response = response.json()
     assert "id" in json_response  # Ensure the project has an auto-generated ID.
     assert json_response["title"] == payload["title"]
@@ -43,185 +43,266 @@ def test_post_projects_full_payload():
     assert json_response["active"] == "true"  # The API stores booleans as strings.
     assert json_response["description"] == payload["description"]
 
+
 # ----------------- Testing http://localhost:4567/projects/:id -----------------
 
 # Test 4: GET /projects/:id - Return a specific instance of a project using an ID
 def test_get_project_by_id():
-    response = requests.get(BASE_URL + "/projects/1")
-    assert response.status_code == 200  # Success: Project exists
+    create_response = requests.post(BASE_URL + "/projects", json={"title": "Test Project"})
+    assert create_response.status_code == 201
+    project_id = create_response.json()["id"]
+
+    response = requests.get(BASE_URL + f"/projects/{project_id}")
+    assert response.status_code == 200
     json_data = response.json()
     assert "projects" in json_data
-    assert json_data["projects"][0]["id"] == "1"
+    assert json_data["projects"][0]["id"] == project_id
+
 
 # Test 5: HEAD /projects/:id - Return headers for a specific instance of a project using an ID
 def test_head_project_by_id():
-    response = requests.head(BASE_URL + "/projects/1")
-    assert response.status_code == 200  # Success: Project exists
-    assert not response.text  # Ensures response body is empty
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Test Project Header"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
+
+    response = requests.head(BASE_URL + f"/projects/{project_id}")
+    assert response.status_code == 200
+    assert not response.text
     assert "Content-Type" in response.headers
     assert response.headers["Content-Type"] == "application/json"
 
+
 # Test 6: POST /projects/:id - Amend a specific instance of a project using an ID
 def test_post_project_by_id():
-    payload = {
-        "title": "Updated Project Title"
-    }
-    response = requests.post(BASE_URL + "/projects/1", json=payload)
-    assert response.status_code == 200  # Project should be updated
-    json_data = response.json()
-    assert json_data["id"] == "1"
-    assert json_data["title"] == payload["title"]
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Original Project Title"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
+
+    updated_payload = {"title": "Updated Project Title"}
+    amend_response = requests.post(BASE_URL + f"/projects/{project_id}", json=updated_payload)
+    assert amend_response.status_code == 200
+
+    updated_project = amend_response.json()
+    assert updated_project["id"] == project_id
+    assert updated_project["title"] == updated_payload["title"]
+
 
 # Test 7: PUT /projects/:id - Fully update a specific instance of a project using an ID
 def test_put_project_by_id():
-    payload = {
+    create_payload = {
+        "title": "Original Project",
+        "completed": False,
+        "active": True,
+        "description": "Initial description"
+    }
+    create_response = requests.post(BASE_URL + "/projects", json=create_payload)
+    assert create_response.status_code == 201
+    project_id = create_response.json()["id"]
+
+    update_payload = {
         "title": "Updated Project",
         "completed": True,
         "active": False,
         "description": "Updated details"
     }
-    response = requests.put(BASE_URL + "/projects/1", json=payload)
-    assert response.status_code == 200  # Success: Project is updated
-    json_data = response.json()
-    assert json_data["id"] == "1"
-    assert json_data["title"] == payload["title"]
-    assert json_data["completed"] == "true"  # API returns boolean as string
-    assert json_data["active"] == "false"  # API returns boolean as string
-    assert json_data["description"] == payload["description"]
+    update_response = requests.put(f"{BASE_URL}/projects/{project_id}", json=update_payload)
+    assert update_response.status_code == 200
+
+    json_data = update_response.json()
+    assert json_data["id"] == project_id
+    assert json_data["title"] == update_payload["title"]
+    assert json_data["completed"] == "true" 
+    assert json_data["active"] == "false"   
+    assert json_data["description"] == update_payload["description"]
+
 
 # Test 8: DELETE /projects/:id - Delete a specific instance of a project by ID
 def test_delete_project_by_id():
-    response = requests.delete(BASE_URL + "/projects/2")
-    assert response.status_code in [200]  
+    payload = {"title": "Project Delete"}
+    create_response = requests.post(BASE_URL + "/projects", json=payload)
+    assert create_response.status_code == 201
+    project_id = create_response.json()["id"]
+
+    response = requests.delete(f"{BASE_URL}/projects/{project_id}")
+    assert response.status_code == 200
+     
 
 # Test 9 (UNDOCUMENTED): GET /projects/id: - Should return 404 Not Found for a non-existent project
 def test_get_non_existent_project():
-    response = requests.get(BASE_URL + "/projects/101")
-    
-    assert response.status_code == 404  # Expect 404 Not Found
-    json_data = response.json()
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Temp Project"})
+    assert project_response.status_code == 201
+    existing_id = int(project_response.json()["id"])
 
-    assert "errorMessages" in json_data  # Ensure error message is present
-    assert "Could not find an instance with projects/101" in json_data["errorMessages"]
+    non_existent_id = existing_id + 1000
+    response = requests.get(BASE_URL + f"/projects/{non_existent_id}")
+
+    assert response.status_code == 404
+    json_data = response.json()
+    assert "errorMessages" in json_data
+    assert f"Could not find an instance with projects/{non_existent_id}" in json_data["errorMessages"]
+
 
 # ----------------- Testing http://localhost:4567/projects/:id/tasks -----------------                                                               
 
-# Test 10: GET /projects/1/tasks - Return all todo items related to project 1
+# Test 10: GET /projects/:id/tasks - Return all todo items related to project id
 def test_get_project_tasks():
-    response = requests.get(BASE_URL + "/projects/1/tasks")  
-    assert response.status_code == 200  
-    json_data = response.json()
-    assert "todos" in json_data  # Ensure "todos" is present in response
-    assert isinstance(json_data["todos"], list)  # Ensure it's a list
-    assert json_data["todos"] == []
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Project Task"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
 
-# Test 11: HEAD /projects/1/tasks -- Return headers for todo items related to project 1
+    response = requests.get(BASE_URL + f"/projects/{project_id}/tasks")
+    assert response.status_code == 200
+    json_data = response.json()
+
+    assert "todos" in json_data
+    assert isinstance(json_data["todos"], list)
+
+
+# Test 11: HEAD /projects/:id/tasks -- Return headers for todo items related to project id
 def test_head_project_tasks():
-    response = requests.head(BASE_URL + "/projects/1/tasks")
-    assert response.status_code == 200  
-    assert not response.text  
-    assert "Content-Type" in response.headers  
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Project Task Header"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
+
+    response = requests.head(BASE_URL + f"/projects/{project_id}/tasks")
+    assert response.status_code == 200
+    assert not response.text 
+    assert "Content-Type" in response.headers
     assert response.headers["Content-Type"] == "application/json"
 
-# Test 12: HEAD /projects/1/tasks -- Return headers for todo items related to project 1
-def test_post_project_task():
-    payload = {
-        "id": "1"  #
-    }
-    response = requests.post(BASE_URL + "/projects/1/tasks", json=payload)
-    assert response.status_code == 201
 
-# Test 13: GET /projects/1/tasks - Retrieve tasks after linking todo to project
+# Test 12: POST /projects/:id/tasks -- Return headers for todo items related to project id
+def test_post_project_task():
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Project Task Posting"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
+
+    payload = {"title": "Task for Posting"}
+    task_response = requests.post(BASE_URL + f"/projects/{project_id}/tasks", json=payload)
+    assert task_response.status_code == 201
+    assert "id" in task_response.json() 
+
+
+# Test 13: GET /projects/:id/tasks - Retrieve tasks after linking todo to project
 def test_get_project_tasks_after_post():
-    response = requests.get(BASE_URL + "/projects/1/tasks")
-    
-    assert response.status_code == 200 
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Project with Task"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
+
+    task_response = requests.post(BASE_URL + f"/projects/{project_id}/tasks", json={"title": "Test Task"})
+    assert task_response.status_code == 201
+    task_id = task_response.json()["id"]
+
+    response = requests.get(f"{BASE_URL}/projects/{project_id}/tasks")
+    assert response.status_code == 200
     json_data = response.json()
 
-    assert "todos" in json_data  
-    assert isinstance(json_data["todos"], list) 
-    assert len(json_data["todos"]) > 0 
+    assert "todos" in json_data
+    assert any(task["id"] == task_id for task in json_data["todos"])
 
-    # Validate the structure of the response
-    todo = json_data["todos"][0]
-    assert todo["id"] == "1"
-    assert todo["title"] == "scan paperwork"
-    assert todo["doneStatus"] == "false"
-    assert todo["description"] == ""
 
-    # Validate the task relationship
-    assert "tasksof" in todo
-    assert any(task["id"] == "1" for task in todo["tasksof"])  # Ensure linked project ID is present
-
-    # Validate the categories structure exists (even if empty)
-    assert "categories" in todo
-
-# Test 14 (UNDOCUMENTED): PUT /projects/1/tasks with No Input - Should return 405 Method Not Allowed
+# Test 14 (UNDOCUMENTED): PUT /projects/:id/tasks with No Input - Should return 405 Method Not Allowed
 def test_put_project_tasks_no_body():
-    response = requests.put(BASE_URL + "/projects/1/tasks")
-    assert response.status_code == 405  
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Project for PUT Task Test"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
+
+    response = requests.put(BASE_URL + f"/projects/{project_id}/tasks")
+    assert response.status_code == 405 
+
 
 # ----------------- Testing http://localhost:4567/projects/:id/tasks/:id -----------------
 
-# Test 15: DELETE /projects/1/tasks/1 -- Remove task 1 from project 1
+# Test 15: DELETE /projects/:id/tasks/:id
 def test_delete_project_task():
-    response = requests.delete(BASE_URL + "/projects/1/tasks/1")
-    assert response.status_code == 200
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Project Delete Test Task"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
+
+    task_response = requests.post(BASE_URL + f"/projects/{project_id}/tasks", json={"title": "Test Task"})
+    assert task_response.status_code == 201
+    task_id = task_response.json()["id"]
+
+    delete_response = requests.delete(f"{BASE_URL}/projects/{project_id}/tasks/{task_id}")
+    assert delete_response.status_code  == 200
+
 
 # ----------------- Testing http://localhost:4567/projects/:id/categories -----------------
 
-# Test 16: GET /projects/1/categories - Retrieve all categories related to project 1
+# Test 16: GET /projects/id/categories - Retrieve all categories related to project id
 def test_get_project_categories():
-    response = requests.get(BASE_URL + "/projects/1/categories")
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Project Categories"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
 
-    assert response.status_code == 200  
+    response = requests.get(f"{BASE_URL}/projects/{project_id}/categories")
+    assert response.status_code == 200
     json_data = response.json()
-    assert "categories" in json_data 
-    assert isinstance(json_data["categories"], list)  
-    assert json_data["categories"] == []  
 
-# Test 17: HEAD /projects/1/categories - Retrieve headers for all category related to project 1
+    assert "categories" in json_data
+    assert isinstance(json_data["categories"], list)
+
+# Test 17: HEAD /projects/id/categories - Retrieve headers for all category related to project id
 def test_head_project_categories():
-    response = requests.head(BASE_URL + "/projects/1/categories")
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Project Categories Header"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
 
-    assert response.status_code == 200  
-    assert not response.text 
-    assert "Content-Type" in response.headers  
-    assert response.headers["Content-Type"] == "application/json"
+    response = requests.head(f"{BASE_URL}/projects/{project_id}/categories")
+    assert response.status_code == 200
 
-# Test 18: POST /projects/1/categories - Create a new category for project 1
+    assert not response.text
+    assert response.headers.get("Content-Type") == "application/json"
+
+
+# Test 18: POST /projects/id/categories - Create a new category for project id
 def test_post_project_category():
-    payload = {
-        "id": "2"  # ID of the existing category
-    }
-    response = requests.post(BASE_URL + "/projects/1/categories", json=payload)
-    
-    assert response.status_code == 201  # Expect 201 Created
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Project Categories Posting"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
 
-# Test 19: GET /projects/1/categories - Retrieve categories after creating a new category
+    category_payload = {"title": "Test Category"}
+    category_response = requests.post(BASE_URL + f"/projects/{project_id}/categories", json=category_payload)
+    assert category_response.status_code == 201
+    json_data = category_response.json()
+
+    assert "id" in json_data
+    assert json_data["title"] == category_payload["title"]
+
+# Test 19: GET /projects/id/categories - Retrieve categories after creating a new category
 def test_get_project_categories_after_post():
-    response = requests.get(BASE_URL + "/projects/1/categories")
+    project_response = requests.post(BASE_URL + "/projects", json={"title": "Project with Category"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
 
-    assert response.status_code == 200  # Expect 200 OK
+    category_response = requests.post(BASE_URL + f"/projects/{project_id}/categories", json={"title": "Category 2"})
+    assert category_response.status_code == 201
+    category_id = category_response.json()["id"]
+
+    response = requests.get(f"{BASE_URL}/projects/{project_id}/categories")
+    assert response.status_code == 200
     json_data = response.json()
-
-    assert "categories" in json_data 
-    assert isinstance(json_data["categories"], list) 
-    assert any(category["id"] == "2" for category in json_data["categories"])
-
-    # Validate Category ID 2 details
-    for category in json_data["categories"]:
-        if category["id"] == "2":
-            assert category["title"] == "Home"
-            assert category["description"] == ""
+    assert "categories" in json_data
+    assert any(category["id"] == category_id for category in json_data["categories"])
 
 
 # ----------------- Testing http://localhost:4567/projects/:id/cateogories/:id -----------------
 
-# Test 20: DELETE /projects/1/categories/1 - Remove category 2 from project 1
+# Test 20: DELETE /projects/1/categories/1 - Remove category from project 
 def test_delete_project_category():
-    response = requests.delete(BASE_URL + "/projects/1/categories/2")
-    assert response.status_code in [200]
+    project_payload = {"title": "Project for Category Deletion"}
+    project_response = requests.post(BASE_URL + "/projects", json=project_payload)
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
+
+    category_payload = {"title": "Category to Delete"}
+    category_response = requests.post(f"{BASE_URL}/projects/{project_id}/categories", json=category_payload)
+    assert category_response.status_code == 201
+    category_id = category_response.json()["id"]
+
+    delete_response = requests.delete(f"{BASE_URL}/projects/{project_id}/categories/{category_id}")
+    assert delete_response.status_code == 200
+
 
 # ----------------- XML Payload Handling -----------------
 
