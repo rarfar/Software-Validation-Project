@@ -295,14 +295,15 @@ def test_delete_todos_id_twice():
         assert response2.status_code == 404                          # error missing
 
 """Test 33: POST /todos -- we should be able to create todo without a ID using the field values in the body of the message"""
-def test_post_todos_full_payload():
+def test_post_todos_json_format_from_documentation():
     payload = {
         "title": "ur sint occaecat cup",
         "doneStatus": "false",
         "description": "m dolore eu fugiat n"
     }
     response = requests.post(BASE_URL + "/todos", json=payload)
-    assert response.status_code == 201                            # The request succeeded, and a new resource was created.
-    assert response.json()['title'] == payload['title']           # However, this is not the case and this test fails. Instead, we receive a status code of 400.
+    assert response.status_code == 201, (f"BUG! Expected a 201 status code, but got {response.status_code}")
+    assert response.json()['title'] == payload['title']           # The request succeeded, and a new resource was created.
+                                                                  # However, this is not the case and this test fails. Instead, we receive a status code of 400.
                                                                   # This is because the suggested JSON format from the API's documentation is wrong and requires
                                                                   # A boolean value for "doneStatus" .
