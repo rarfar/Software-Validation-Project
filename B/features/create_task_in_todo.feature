@@ -1,6 +1,10 @@
 Feature: Create a new todo task
-    As a user, I want to create a new task in /todo so that I can track my work.
+    As a user,
+    I want to create a new task in /todo
+    so that I can track my work.
 
+    Background:
+        Given the /todo system is running
 
     # Normal Flow
     Scenario Outline: Successfully create a new todo
@@ -27,3 +31,7 @@ Feature: Create a new todo task
         When I attempt to add a task without a title "<task_title>"
         And only provide a description "<task_description>"
         Then I should receive an error: status code 400
+        Examples:
+        | task_title    | task_description   |
+        |      N/A      | Milk, bread, eggs  |
+        |      N/A      | Finish question #4 |
