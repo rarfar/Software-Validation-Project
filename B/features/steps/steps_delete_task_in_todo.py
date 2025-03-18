@@ -25,35 +25,14 @@ def step_impl(context, task_title, task_description, task_doneStatus):
 
 @when('I delete the todo with title "{task_title}"')
 def step_impl(context, task_title):
-    """
-    First, we get the ID of the task based on its title, then delete it.
-    """
-    # Fetch the task by title to get its ID
-    response = requests.get(f"{BASE_URL}?title={task_title}")
-    assert response.status_code == 200, f"Failed to fetch task by title: {response.status_code}"
-
-    # Check if the task exists
-    task = response.json()
-    if task:
-        task_id = task[0]["id"]  # Assuming the response is a list and getting the first task
-        # Now delete the task with the found ID
-        response = requests.delete(f"{BASE_URL}/{task_id}")
-    else:
-        response = None  # Task doesn't exist
-
-    context.response = response
+    response = requests.delete(BASE_URL + "/todos/" +context.task_id)
+    assert response.status_code == 200
 
 
 @then('the todo should be deleted from the system')
 def step_impl(context):
-    """
-    Assert that the task is deleted from the system by checking the status code.
-    """
-    assert context.response.status_code == 200, f"Expected 200, got {context.response.status_code}"
-    # Try to fetch the task after deletion to confirm it has been deleted
-    response = requests.get(f"{BASE_URL}/{context.task_id}")
-    assert response.status_code == 404, f"Task still exists with status {response.status_code}"
-
+    todos = requests.get(BASE_URL + "/todos").json()
+    assert all(todo["id"] != context.task_id for todo in todos["todos"])
 
 # --------------------- Alternative Flow ---------------------
 @given(
