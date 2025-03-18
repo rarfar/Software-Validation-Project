@@ -34,8 +34,8 @@ def step_impl(context):
     assert created_todo["doneStatus"].lower() == "false", f"Incorrect doneStatus: {created_todo}"
 
 # --------------------- Alternative Flow ---------------------
-@when('I create a todo with title "{task_title}" and no description "{task_description}" and no doneStatus "{task_doneStatus}"')
-def step_impl(context, task_title, task_description, task_doneStatus):
+@when('I create a todo with title "{task_title}", no description and no doneStatus')
+def step_impl(context, task_title):
     payload = {
         "title": task_title
     }
@@ -50,13 +50,13 @@ def step_impl(context):
     assert created_todo["doneStatus"].lower() == "false", f"Incorrect doneStatus: {created_todo}"
 
 # --------------------- Error Flow ---------------------
-@when('I attempt to add a task without a title "{task_title}"')
-def step_impl(context, task_title):
+@when('I attempt to add a task without a title and only provide a description "{task_description}"')
+def step_impl(context, task_description):
     payload = {
-        "description": "Task without title"
+        "description": task_description
     }
     context.response = requests.post(BASE_URL, json=payload)
 
-@then('I should receive an error: status code 400')
+@then('I should receive an error response: status code 400')
 def step_impl(context):
     assert context.response.status_code == 400, f"Expected 400, got {context.response.status_code}: {context.response.text}"
