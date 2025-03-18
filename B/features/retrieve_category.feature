@@ -3,6 +3,9 @@ Feature: Retrieve a category
     I want to retrieve a specific category from /categories
     so that I can see its details.
 
+    Background:
+        Given the API is running
+
     # Normal Flow
     Scenario Outline: Successfully retrieve a category by ID
         Given a category exists with title "<category_title>"

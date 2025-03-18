@@ -3,6 +3,10 @@ Feature: Get all todos from a category
     I want to retrieve all todos in a category from /categories
     so that I can see all tasks related to that category.
 
+    Background:
+        Given the API is running
+
+
     # Normal Flow
     Scenario Outline: Successfully retrieve all todos in a category
         Given a category exists with title "<category_title>"
