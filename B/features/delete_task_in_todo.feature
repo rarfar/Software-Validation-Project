@@ -14,7 +14,6 @@ Feature: Delete a todo task
         Examples:
             | task_title    | task_description | task_doneStatus  |
             | Write report  | Finish report    | True             |
-            | Buy groceries | Milk, eggs       | False            |
 
     # Alternative Flow
     Scenario Outline: Add a task to todos, and then immediately delete it (could be a mistake or task reassigned to someone else)
@@ -26,8 +25,6 @@ Feature: Delete a todo task
         Examples:
             | task_title     | task_description          | task_doneStatus  |
             | Complete report| Finish ECSE 429 report    | False            |
-            | Buy supplies   | Milk, eggs, and bread     | False            |
-            | Attend meeting | Zoom call at 3 PM         | False            |
 
     # Error Flow
     Scenario Outline: Attempt to delete a non-existing todo

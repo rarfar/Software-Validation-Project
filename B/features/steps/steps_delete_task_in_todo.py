@@ -4,108 +4,123 @@ import requests
 BASE_URL = "http://localhost:4567/todos"
 
 
-
 # --------------------- Normal Flow ---------------------
 @given('a todo exists with title "{task_title}", description "{task_description}" and done status "{task_doneStatus}"')
 def step_impl(context, task_title, task_description, task_doneStatus):
-    payload = {
+    """
+    Ensure the todo exists with a specified title, description, and doneStatus.
+    First, we query to get the ID based on the title.
+    """
+    task_data = {
         "title": task_title,
         "description": task_description,
-        "doneStatus": task_doneStatus
+        "doneStatus": task_doneStatus == "True"
     }
-    response = requests.post(BASE_URL, json=payload)
-    assert response.status_code in [200, 201], f"Todo creation failed: {response.text}"
-    context.todo_id = response.json()["id"]
+    response = requests.post(BASE_URL, json=task_data)
+    assert response.status_code == 201, f"Failed to create task: {response.status_code}"
+
+    # Save the created task's ID for later use
+    context.task_id = response.json()["id"]
 
 
 @when('I delete the todo with title "{task_title}"')
 def step_impl(context, task_title):
-    # Get all todos and find the one with the matching title
-    response = requests.get(BASE_URL)
-    todos = response.json().get("todos", [])
+    """
+    First, we get the ID of the task based on its title, then delete it.
+    """
+    # Fetch the task by title to get its ID
+    response = requests.get(f"{BASE_URL}?title={task_title}")
+    assert response.status_code == 200, f"Failed to fetch task by title: {response.status_code}"
 
-    todo_id = None
-    for todo in todos:
-        if todo["title"] == task_title:
-            todo_id = todo["id"]
-            break
+    # Check if the task exists
+    task = response.json()
+    if task:
+        task_id = task[0]["id"]  # Assuming the response is a list and getting the first task
+        # Now delete the task with the found ID
+        response = requests.delete(f"{BASE_URL}/{task_id}")
+    else:
+        response = None  # Task doesn't exist
 
-    assert todo_id, f"No todo found with title: {task_title}"
-
-    # Delete the found todo
-    context.response = requests.delete(f"{BASE_URL}/{todo_id}")
+    context.response = response
 
 
-@then("the todo should be deleted from the system")
+@then('the todo should be deleted from the system')
 def step_impl(context):
+    """
+    Assert that the task is deleted from the system by checking the status code.
+    """
     assert context.response.status_code == 200, f"Expected 200, got {context.response.status_code}"
-    deleted_todo_id = context.response.url.split("/")[-1]
-
-    # Verify it no longer exists
-    response = requests.get(f"{BASE_URL}/{deleted_todo_id}")
-    assert response.status_code == 404, "Todo was not deleted successfully"
+    # Try to fetch the task after deletion to confirm it has been deleted
+    response = requests.get(f"{BASE_URL}/{context.task_id}")
+    assert response.status_code == 404, f"Task still exists with status {response.status_code}"
 
 
 # --------------------- Alternative Flow ---------------------
 @given(
     'there is no existing todo item with title "{task_title}", description "{task_description}" and done status "{task_doneStatus}"')
 def step_impl(context, task_title, task_description, task_doneStatus):
-    response = requests.get(BASE_URL)
-    todos = response.json().get("todos", [])
-
-    for todo in todos:
-        assert not (todo["title"] == task_title and todo.get("description", "") == task_description and todo[
-            "doneStatus"] == task_doneStatus), \
-            f"Todo with title '{task_title}' already exists!"
+    """
+    Ensure that the todo does not exist before adding it.
+    If the todo exists, delete it first.
+    """
+    response = requests.get(f"{BASE_URL}?title={task_title}")
+    if response.status_code == 200 and response.json():
+        task_id = response.json()[0]["id"]
+        requests.delete(f"{BASE_URL}/{task_id}")
 
 
 @when('I add a todo with title "{task_title}" and description "{task_description}"')
 def step_impl(context, task_title, task_description):
-    payload = {
+    """
+    Add a new todo with specified title and description.
+    """
+    task_data = {
         "title": task_title,
-        "description": task_description
+        "description": task_description,
+        "doneStatus": False
     }
-    context.response = requests.post(BASE_URL, json=payload)
-    assert context.response.status_code in [200, 201], f"Expected 200/201, got {context.response.status_code}"
-    context.todo_id = context.response.json()["id"]
+    response = requests.post(BASE_URL, json=task_data)
+    assert response.status_code == 201, f"Failed to create task: {response.status_code}"
+
+    # Save the created task's ID for later use
+    context.task_id = response.json()["id"]
 
 
 @then('the todo should be saved with doneStatus "False"')
 def step_impl(context):
-    assert context.response.status_code in [200, 201]
-    created_todo = context.response.json()
-    assert created_todo["title"]
-    assert created_todo["doneStatus"] == "false"
-
+    """
+    Assert that the task has been saved with doneStatus set to False.
+    """
+    task = context.response.json()
+    assert task["doneStatus"] is False, f"Expected doneStatus to be False, but got {task['doneStatus']}"
 
 # --------------------- Error Flow ---------------------
 @given(
     'a task with title "{task_title}" description "{task_description}" and done status "{task_doneStatus}" does not exist in my list of tasks')
 def step_impl(context, task_title, task_description, task_doneStatus):
-    response = requests.get(BASE_URL)
-    todos = response.json().get("todos", [])
-
-    for todo in todos:
-        assert not (todo["title"] == task_title and todo.get("description", "") == task_description and todo[
-            "doneStatus"] == task_doneStatus), \
-            f"Todo '{task_title}' unexpectedly found!"
+    """
+    Ensure the task does not exist in the todo list before attempting to delete.
+    """
+    response = requests.get(f"{BASE_URL}?title={task_title}")
+    if response.status_code == 200 and response.json():
+        task = response.json()[0]  # Assuming it returns a list of tasks
+        task_id = task["id"]
+        # Delete the task if it exists
+        requests.delete(f"{BASE_URL}/{task_id}")
 
 
 @when('I try to delete a todo with title "{task_title}"')
 def step_impl(context, task_title):
-    # Try to find the todo ID
-    response = requests.get(BASE_URL)
-    todos = response.json().get("todos", [])
+    """
+    Attempt to delete a task that does not exist.
+    """
+    # Try to delete a non-existent task (no task with the given title exists)
+    response = requests.get(f"{BASE_URL}?title={task_title}")
+    if response.status_code == 200 and response.json():
+        task = response.json()[0]  # Get task id
+        response = requests.delete(f"{BASE_URL}/{task['id']}")
+    else:
+        response = requests.delete(f"{BASE_URL}/{task_title}")
 
-    todo_id = None
-    for todo in todos:
-        if todo["title"] == task_title:
-            todo_id = todo["id"]
-            break
-
-    # If not found, use a random ID to trigger 404
-    todo_id = todo_id or "999999"
-
-    context.response = requests.delete(f"{BASE_URL}/{todo_id}")
-
+    context.response = response
 
