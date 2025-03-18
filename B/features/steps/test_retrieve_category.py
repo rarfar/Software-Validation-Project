@@ -12,6 +12,7 @@ def step_impl(context, category_title):
     </category>"""
     response = requests.post(url_categories, headers=xml_to_xml, data=xml)
     context.category_id = xmltodict.parse(response.text)["category"]["id"]
+    context.category_title = category_title
     assert response.status_code == 201
 
 @When(u'I retrieve the category with its generated ID')
@@ -61,4 +62,4 @@ def step_impl(context, category_id):
 
 @Then(u'I should receive an error: status code 404')
 def step_impl(context):
-    assert context.response.status_code == 404
+    assert context.response.status_code == 404, "expected 404, got %s" % context.response.status_code

@@ -11,10 +11,10 @@ Feature: Create a new category
         When I create a category with title "<category_title>" and with description "<category_description>"
         Then the category with title "<category_title>" and description "<category_description>" should be saved in the system
         Examples:
-            | category_title  | category_description |
-            | Work            |  work category       |
-            | Personal        |  personal category   |
-            | School          |  school category     |
+            | category_title  | category_description  |
+            | Electronic      |  Electronic category  |
+            | Accoustic       |  Accoustic category   |
+            | Pop             |  Pop category         |
 
     # Alternative Flow
     Scenario Outline: Create a category with no description

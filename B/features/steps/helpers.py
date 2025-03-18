@@ -9,6 +9,7 @@ json_to_xml =    {"Content-Type":  "application/json", "Accept": "application/xm
 json_to_json =   {"Content-Type":  "application/json", "Accept": "application/json"}
 
 # URLs
+url_base = "http://localhost:4567"
 # todos
 url_todos = "http://localhost:4567/todos"
 url_todos_id = "http://localhost:4567/todos/%s"
@@ -30,9 +31,9 @@ url_categories_id_todos_id = "http://localhost:4567/categories/%s/todos/%s"
 # normal
 todos_xml_1 = """ 
 <todo>
-    <title>Todo 1</title>
-    <description>Todo 1 description</description>
-    <doneStatus>false</doneStatus>
+    <title>%s</title>
+    <description>%s</description>
+    <doneStatus>%s</doneStatus>
 </todo> """
 # PROJECTS
 
@@ -40,8 +41,8 @@ todos_xml_1 = """
 # normal
 categories_xml_1 = """
 <category>
-    <title>Category 1</title>
-    <description>Category 1 description</description>
+    <title>%s</title>
+    <description>%s</description>
 </category>"""
 
 # no description
