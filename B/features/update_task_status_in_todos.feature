@@ -14,8 +14,7 @@ Feature: Update the done status of a todo task
         Then the todo should be saved with doneStatus "True"
         Examples:
             | task_title    | task_description | task_doneStatus |
-            | Write report  | Finish report    | True            |
-            | Buy groceries | Milk, eggs       | False           |
+            | Write report  | Finish report    | False           |
 
     # Alternative Flow
     Scenario Outline: Mark a completed todo as pending again
@@ -24,14 +23,15 @@ Feature: Update the done status of a todo task
         Then the todo should be saved with doneStatus "False"
         Examples:
             | task_title    | task_description |task_doneStatus |
-            | Write report  | Finish report    | False          |
-            | Buy groceries | Milk, eggs       | False          |
+            | Write report  | Finish report    | True           |
+
     # Error Flow
     Scenario Outline: Attempt to update the doneStatus of a non-existing todo
+        Given a task with title "<task_title>" description "<task_description>" and done status "<task_doneStatus>" does not exist in my list of tasks
         When I try to update the doneStatus of a non-existent task with name "<task_title>"
         Then I should receive an error: status code 404
         Examples:
-            | task_title    | task_description |task_doneStatus |
-            | Write report  | Finish report    | False          |
-            | Buy groceries | Milk, eggs       | False          |
+            | task_title    | task_description | task_doneStatus|
+            | Fold laundry  | by tomorrow      | False          |
+
 

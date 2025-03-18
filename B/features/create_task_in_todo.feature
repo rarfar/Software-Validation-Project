@@ -19,19 +19,18 @@ Feature: Create a new todo task
 
     # Alternative Flow
     Scenario Outline: Create a todo with only a title
-        When I create a todo with title "<task_title>" and no description "<task_description>" and no doneStatus "<task_doneStatus>"
+        When I create a todo with title "<task_title>", no description and no doneStatus
         Then the todo should be saved with an empty description and doneStatus "False"
         Examples:
-            | task_title   | task_description | task_doneStatus |
-            | Team meeting |                  | False           |
-            | Submit essay |                  | False           |
+            | task_title   |
+            | Team meeting |
+            | Submit essay |
 
     # Error Flow
     Scenario Outline: Attempt to create a todo without a title
-        When I attempt to add a task without a title "<task_title>"
-        And only provide a description "<task_description>"
-        Then I should receive an error: status code 400
+        When I attempt to add a task without a title and only provide a description "<task_description>"
+        Then I should receive an error response: status code 400
         Examples:
-        | task_title    | task_description   |
-        |      N/A      | Milk, bread, eggs  |
-        |      N/A      | Finish question #4 |
+    |task_description   |
+    |Milk, bread, eggs  |
+    |Finish question #4 |
