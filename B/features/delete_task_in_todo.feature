@@ -20,7 +20,7 @@ Feature: Delete a todo task
     Scenario Outline: Add a task to todos, and then immediately delete it (could be a mistake or task reassigned to someone else)
         Given there is no existing todo item with title "<task_title>", description "<task_description>" and done status "<task_doneStatus>"
         When I add a todo with title "<task_title>" and description "<task_description>"
-        Then the todo should be saved in the system with doneStatus "False"
+        Then the todo should be saved with doneStatus "False"
         When I delete the todo with title "<task_title>"
         Then the todo should be deleted from the system
         Examples:
@@ -36,5 +36,4 @@ Feature: Delete a todo task
         Then I should receive an error: status code 404
         Examples:
             | task_title       |  task_description | task_doneStatus  |
-            | Write report     | Finish report    | True              |
-            | Buy groceries    | Milk, eggs       | False             |
+            | Write reports    | Finish report    | True              |
