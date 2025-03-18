@@ -25,7 +25,7 @@ You can run these tests consecutively, however, these tests add, alter and delet
 
 ### Running Story Tests with Behave
 To execute the story tests, navigate to the features directory and run: ```python -m behave```\
-This will execute all Gherkin feature files and validate API functionality
+This will execute all Gherkin feature files and validate API functionality.
 
 * If you run the tests multiple times in a row, the API must be restarted between runs to ensure a clean testing environment.
 * Since the tests add, modify, and delete data, running them twice without restarting the API may result in inconsistent results or failures due to leftover data from the previous execution.
