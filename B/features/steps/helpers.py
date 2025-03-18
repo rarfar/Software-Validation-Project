@@ -11,19 +11,19 @@ json_to_json =   {"Content-Type":  "application/json", "Accept": "application/js
 # URLs
 # todos
 url_todos = "http://localhost:4567/todos"
-url_todos_id = "http://localhost:4567/todos/%d"
-url_todos_id_tasksof = "http://localhost:4567/todos/%d/tasksof"
-url_todos_id_tasksof_id = "http://localhost:4567/todos/%d/tasksof/%d"
-url_todos_id_categories = "http://localhost:4567/todos/%d/categories"
-url_todos_id_categories_id = "http://localhost:4567/todos/%d/categories/%d"
+url_todos_id = "http://localhost:4567/todos/%s"
+url_todos_id_tasksof = "http://localhost:4567/todos/%s/tasksof"
+url_todos_id_tasksof_id = "http://localhost:4567/todos/%s/tasksof/%s"
+url_todos_id_categories = "http://localhost:4567/todos/%s/categories"
+url_todos_id_categories_id = "http://localhost:4567/todos/%s/categories/%s"
 # projects
 url_projects = "http://localhost:4567/projects"
-url_projects_id = "http://localhost:4567/projects/%d"
+url_projects_id = "http://localhost:4567/projects/%s"
 # categories
 url_categories = "http://localhost:4567/categories"
-url_categories_id = "http://localhost:4567/categories/%d"
-url_categories_id_todos = "http://localhost:4567/categories/%d/todos"
-url_categories_id_todos_id = "http://localhost:4567/categories/%d/todos/%d"
+url_categories_id = "http://localhost:4567/categories/%s"
+url_categories_id_todos = "http://localhost:4567/categories/%s/todos"
+url_categories_id_todos_id = "http://localhost:4567/categories/%s/todos/%s"
 
 # XML templates
 # TODOS
