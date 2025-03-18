@@ -4,6 +4,9 @@ Feature: Create a new category
     so that I can organize my todos or projects.
 
     
+    Background:
+        Given the API is running
+
 
     # Normal Flow
     Scenario Outline: Successfully create a new category

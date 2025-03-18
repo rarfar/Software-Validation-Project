@@ -3,6 +3,9 @@ Feature: Assign a todo to a category
     I want to assign a todo to a category in /categories
     so that I can group related tasks together.
 
+    Background:
+        Given the API is running
+
     # Normal Flow
     Scenario Outline: Successfully assign a todo to a category
         Given a category exists with title "<category_title>"

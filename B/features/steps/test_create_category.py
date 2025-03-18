@@ -4,6 +4,14 @@ import xmltodict  # For parsing XML responses
 import subprocess  # For running subprocess commands (not used in this file)
 from helpers import *  # Import helper variables and functions (e.g., headers, URLs)
 
+# Background
+@given(u'the API is running')
+def step_impl(context):
+    # Check if the API is running by sending a GET request to the base URL
+    response = requests.get(url_base)
+    assert response.status_code == 200, f"API is not running. Status: {response.status_code}, Response: {response.text}"
+
+
 # Normal Flow
 @Given(u'there is no existing category with title "{category_title}" and with description "{category_description}"')
 def step_impl(context, category_title, category_description):

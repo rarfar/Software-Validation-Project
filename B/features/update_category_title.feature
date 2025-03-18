@@ -3,6 +3,9 @@ Feature: Update a category name
     I want to update the name of a category in /categories
     so that I can rename it if needed.
 
+    Background:
+        Given the API is running
+
     # Normal Flow
     Scenario Outline: Successfully update a category name
         Given a category exists with title "<category_title>"
