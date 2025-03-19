@@ -52,10 +52,10 @@ def step_impl(context, task_id, task_title, task_description, task_doneStatus):
     context.task_id = response.json()["id"]
 
 
-@when('I update the description of the todo with ID "{task_id}" to "{task_description}"')
-def step_impl(context, task_id, task_description):
+@when('I update the title of the todo with ID "{task_id}" to "{task_title}"')
+def step_impl(context, task_id, task_title):
     payload = {
-        "description":"New due date: March 17"
+        "title":"New HW"
     }
     response = requests.put(f"{BASE_URL}/{context.task_id}", headers=HEADERS, json=payload)
     assert response.status_code in [200, 201], f"Expected status code 201 or 200, but got {response.status_code}"
@@ -65,8 +65,8 @@ def step_impl(context, task_id, task_description):
 @then('the todo should be updated with description "{task_description}"')
 def step_impl(context, task_description):
     response_data = context.response.json()
-    task_desc= response_data.get("description")
-    assert task_desc in ["New due date: March 17"]
+    task_tit= response_data.get("title")
+    assert task_tit in ["New HW"]
 
 
 # --------------------- Error Flow ---------------------

@@ -13,16 +13,18 @@ Feature: Update the done status of a todo task
         When I update the doneStatus of the todo with ID "<task_id>" to "True"
         Then the todo should be updated with doneStatus "True"
         Examples:
-            | task_title   | task_description | task_doneStatus |
+            | task_doneStatus |
+
 
 
     # Alternative Flow
-    Scenario Outline: Alter the description of a task that may have changed but still needs to be done
+    Scenario Outline: Alter the title of a task that may have changed but still needs to be done
         Given a todo exists with an ID "<task_id>" and title "<task_title>", description "<task_description>", and doneStatus "<task_doneStatus>"
-        When I update the description of the todo with ID "<task_id>" to "<task_description>"
-        Then the todo should be updated with description "<task_description>"
+        When I update the title of the todo with ID "<task_id>" to "<task_title>"
+        Then the todo should be updated with description "<task_title>"
         Examples:
-            | task_title   | task_description | task_doneStatus |
+            | task_title   |
+
 
 
     # Error Flow
