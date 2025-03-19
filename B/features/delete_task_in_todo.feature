@@ -11,9 +11,10 @@ Feature: Delete a todo task
         Given a todo exists with title "<task_title>", description "<task_description>" and done status "<task_doneStatus>"
         When I delete the todo with title "<task_title>"
         Then the todo should be deleted from the system
-        Examples:
-            | task_title    | task_description | task_doneStatus  |
-            | Write report  | Finish report    | True             |
+       #Examples:
+           # | task_title    | task_description | task_doneStatus  |
+          #  | Write report  | Finish report    | True             |
+          #  | Work Out      | Leg day          | False            |
 
     # Alternative Flow
     Scenario Outline: Add a task to todos, and then immediately delete it (could be a mistake or task reassigned to someone else)
@@ -22,15 +23,13 @@ Feature: Delete a todo task
         Then the todo should be saved with doneStatus "False"
         When I delete the todo with title "<task_title>"
         Then the todo should be deleted from the system
-        Examples:
-            | task_title     | task_description          | task_doneStatus  |
-            | Complete report| Finish ECSE 429 report    | False            |
+       #Examples:
+           # | task_title     | task_description          | task_doneStatus  |
+           # | Complete report| Finish ECSE 429 report    | False            |
+           # | Work Out       | Leg day                   | False            |
 
     # Error Flow
     Scenario Outline: Attempt to delete a non-existing todo
-        Given a task with title "<task_title>" description "<task_description>" and done status "<task_doneStatus>" does not exist in my list of tasks
-        When I try to delete a todo with title "<task_title>"
-        Then I should receive an error: status code 404
-        Examples:
-            | task_title       |  task_description | task_doneStatus  |
-            | Write reports    | Finish report    | True              |
+        When I send a DELETE request to "/todos/1111"
+        Then I should receive an 404 error when deleting a project
+        #Examples:

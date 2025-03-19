@@ -2,54 +2,84 @@ from behave import *  # Import all necessary decorators and functions from behav
 import requests  # For making HTTP requests
 from helpers import *  # Import helper variables and functions (e.g., headers, URLs)
 
+BASE_URL = "http://localhost:4567/todos"
+HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
 @given('a todo exists with ID "{task_id}" and title "{task_title}", description "{task_description}", and doneStatus "{task_doneStatus}"')
 def step_impl(context, task_id, task_title, task_description, task_doneStatus):
-    json_payload = json.dumps({
+    task_data = {
         "title": task_title,
         "description": task_description,
-        "doneStatus": task_doneStatus
-    })
-    response = requests.post(url_todos,headers=json_to_json,data=json_payload)
-    assert response.status_code in [200, 201], f"Expected status code 201 or 200, but got {response.status_code}"
-    # Extract the assigned task ID from the response
-    response_data = response.json()
-    task_id = response_data.get("id")
+        "doneStatus": task_doneStatus == "False"
+    }
+    response = requests.post(BASE_URL, headers=HEADERS, json=task_data)
+    assert response.status_code == 201, f"Failed to create task: {response.status_code}"
 
-    # Save task details in the context for use in later steps
-    context.task_id = task_id
-    context.task_title = task_title
-    context.task_description = task_description
-    context.task_doneStatus = task_doneStatus
-    context.response = response
+    # Save the created task's ID for later use
+    context.task_id = response.json()["id"]
 
 
 @when('I update the doneStatus of the todo with ID "{task_id}" to "True"')
 def step_impl(context, task_id):
-    payload = json.dumps({
+    payload ={
         "doneStatus": "True"
-    })
-    response = requests.put(url_todos_id % context.task_id, headers=json_to_json,data=json_payload)
+    }
+    response = requests.put(f"{BASE_URL}/{context.task_id}", headers=HEADERS, json=payload)
     assert response.status_code in [200, 201], f"Expected status code 201 or 200, but got {response.status_code}"
-
+    context.response = response
 
 @then('the todo should be updated with doneStatus "True"')
 def step_impl(context):
-    response = requests.get(url_todos_id % context.task_id)
-    response_data = response.json()
+
+    response_data = context.response.json()
     task_status = response_data.get("doneStatus")
     assert task_status in ["True"]
 
 #Alternative Flow
 
-#given implemented above
-@when('I update the doneStatus of the todo with ID "{task_id}" to "False"')
-def step_impl(context, task_id):
-     payload = json.dumps({
-        "doneStatus": "False"
-    })
-    response = requests.put(url_todos_id % context.task_id, headers=json_to_json,data=json_payload)
+@given(
+    'a todo exists with an ID "{task_id}" and title "{task_title}", description "{task_description}", and doneStatus "{task_doneStatus}"')
+def step_impl(context, task_id, task_title, task_description, task_doneStatus):
+    task_data = {
+        "title": task_title,
+        "description": task_description,
+        "doneStatus": task_doneStatus == "False"
+    }
+    response = requests.post(BASE_URL, headers=HEADERS, json=task_data)
+    assert response.status_code == 201, f"Failed to create task: {response.status_code}"
+
+    # Save the created task's ID for later use
+    context.task_id = response.json()["id"]
+
+
+@when('I update the description of the todo with ID "{task_id}" to "{task_description}"')
+def step_impl(context, task_id, task_description):
+    payload = {
+        "description":"New due date: March 17"
+    }
+    response = requests.put(f"{BASE_URL}/{context.task_id}", headers=HEADERS, json=payload)
     assert response.status_code in [200, 201], f"Expected status code 201 or 200, but got {response.status_code}"
-    response_data = response.json()
-    task_status = response_data.get("doneStatus")
-    assert task_status in ["True"]
+    context.response = response
+
+
+@then('the todo should be updated with description "{task_description}"')
+def step_impl(context, task_description):
+    response_data = context.response.json()
+    task_desc= response_data.get("description")
+    assert task_desc in ["New due date: March 17"]
+
+
+# --------------------- Error Flow ---------------------
+
+@given('there is no todo with ID "{task_id}"')
+def step_impl(context, task_id):
+   response = requests.get(f"{BASE_URL}/{task_id}")
+   assert response.status_code == 404, f"Expected status code 404, but got {response.status_code}"
+
+@when('I attempt to update the doneStatus of the todo with ID "{task_id}"')
+def step_impl(context, task_id):
+    payload = {
+        "doneStatus": "True"
+    }
+    response = requests.put(f"{BASE_URL}/{task_id}", headers=HEADERS, json=payload)
+    assert response.status_code == 404

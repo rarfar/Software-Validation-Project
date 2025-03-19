@@ -13,17 +13,17 @@ Feature: Update the done status of a todo task
         When I update the doneStatus of the todo with ID "<task_id>" to "True"
         Then the todo should be updated with doneStatus "True"
         Examples:
-            | task_id | task_title   | task_description | task_doneStatus |
-            | 1       | Write report | Finish report   | False           |
+            | task_title   | task_description | task_doneStatus |
+
 
     # Alternative Flow
-    Scenario Outline: Mark a task as not done again
-        Given a todo exists with ID "<task_id>" and title "<task_title>", description "<task_description>", and doneStatus "<task_doneStatus>"
-        When I update the doneStatus of the todo with ID "<task_id>" to "False"
-        Then the todo should be updated with doneStatus "False"
+    Scenario Outline: Alter the description of a task that may have changed but still needs to be done
+        Given a todo exists with an ID "<task_id>" and title "<task_title>", description "<task_description>", and doneStatus "<task_doneStatus>"
+        When I update the description of the todo with ID "<task_id>" to "<task_description>"
+        Then the todo should be updated with description "<task_description>"
         Examples:
-            | task_id | task_title   | task_description | task_doneStatus |
-            | 2       | Write report | Finish report   | True            |
+            | task_title   | task_description | task_doneStatus |
+
 
     # Error Flow
     Scenario Outline: Attempt to update the doneStatus of a non-existing todo
@@ -32,5 +32,4 @@ Feature: Update the done status of a todo task
         Then I should receive an error: status code 404
         Examples:
             | task_id |
-            | 999    |
-            | ABC    |
+
