@@ -36,7 +36,7 @@ def test_add_todo_performance():
 
         cpu_usage_log = []
         running_flag = {"flag": True}
-        monitor_thread = threading.Thread(target=monitor_cpu, args=(process, 0.1, running_flag, cpu_usage_log))
+        monitor_thread = threading.Thread(target=monitor_cpu, args=(process, 0.5, running_flag, cpu_usage_log))
         monitor_thread.start()
 
         for _ in range(count):

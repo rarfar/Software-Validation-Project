@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from faker import Faker
 import threading
 
+session = requests.Session()
+
 fake = Faker()
 BASE_URL = "http://localhost:4567/todos"
 ITERATIONS = [1, 10, 100, 500, 1000, 2000, 5000]
@@ -20,7 +22,7 @@ def create_todo():
         "description": fake.sentence(),
         "doneStatus": False,
     }
-    response = requests.post(BASE_URL, json=payload)
+    response = session.post(BASE_URL, json=payload)
     assert response.status_code == 201
     return response.json().get("id")
 
@@ -42,11 +44,12 @@ def test_todo_delete_performance():
         # Start CPU monitor
         cpu_usage_log = []
         running_flag = {"flag": True}
-        monitor_thread = threading.Thread(target=monitor_cpu, args=(process, 0.1, running_flag, cpu_usage_log))
+        monitor_thread = threading.Thread(target=monitor_cpu, args=(process, 0.5, running_flag, cpu_usage_log))
         monitor_thread.start()
 
         for todo_id in ids:
             requests.delete(f"{BASE_URL}/{todo_id}")
+
 
         end_time = time.time()
         running_flag["flag"] = False

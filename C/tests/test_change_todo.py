@@ -4,6 +4,7 @@ import requests
 import matplotlib.pyplot as plt
 from faker import Faker
 import threading
+session = requests.Session()
 
 fake = Faker()
 BASE_URL = 'http://localhost:4567/todos'
@@ -20,7 +21,7 @@ def create_todo():
         "description": fake.sentence(),
         "doneStatus": False,
     }
-    response = requests.post(BASE_URL, json=payload)
+    response = session.post(BASE_URL, json=payload)
     assert response.status_code == 201
     return response.json().get("id")
 
@@ -30,7 +31,8 @@ def update_todo(todo_id):
         "description": fake.sentence(),
         "doneStatus": True,
     }
-    response = requests.post(f"{BASE_URL}/{todo_id}", json=updated_payload)
+    response = session.post(f"{BASE_URL}/{todo_id}", json=updated_payload)
+    response.close()
     assert response.status_code in [200, 204]
 
 def monitor_cpu(process, interval, running, usage_log):
@@ -51,7 +53,7 @@ def test_todo_change_performance():
         # Start CPU monitor
         cpu_usage_log = []
         running_flag = {"flag": True}
-        monitor_thread = threading.Thread(target=monitor_cpu, args=(process, 0.1, running_flag, cpu_usage_log))
+        monitor_thread = threading.Thread(target=monitor_cpu, args=(process, 0.5, running_flag, cpu_usage_log))
         monitor_thread.start()
 
         for todo_id in ids:
