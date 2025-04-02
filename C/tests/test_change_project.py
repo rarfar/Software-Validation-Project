@@ -3,70 +3,81 @@ import psutil
 import requests
 import matplotlib.pyplot as plt
 from faker import Faker
+import threading
 
 fake = Faker()
-BASE_URL = 'http://localhost:4567/projects'
+BASE_URL = "http://localhost:4567/projects"
+ITERATIONS = [1, 10, 100, 500, 1000, 2000, 3000]
 
-ITERATIONS = [1, 10, 100, 500, 1000, 2000]
+# Tracking
 times = []
-cpu_usages = []
+cpu_percentages = []
 memory_usages = []
 
 def create_project():
     payload = {
-        "title": fake.sentence(nb_words=3),
-        "description": fake.sentence(),
-        "completed": False,
-        "active": False
+        "title": fake.word(),
+        "description": fake.sentence()
     }
-    res = requests.post(BASE_URL, json=payload)
-    assert res.status_code == 201
-    return res.json()['id']
+    response = requests.post(BASE_URL, json=payload)
+    assert response.status_code == 201
+    return response.json().get("id")
 
 def update_project(project_id):
-    new_data = {
-        "title": fake.sentence(nb_words=4),
+    updated_data = {
+        "title": fake.word(),
         "description": fake.sentence(),
         "completed": True,
         "active": True
     }
-    res = requests.post(f"{BASE_URL}/{project_id}", json=new_data)
-    assert res.status_code in [200, 201]
+    response = requests.post(f"{BASE_URL}/{project_id}", json=updated_data)
+    assert response.status_code in [200, 204]
 
-def test_change_project_performance():
+def monitor_cpu(process, interval, running, usage_log):
+    while running["flag"]:
+        usage_log.append(process.cpu_percent(interval=interval))
+        time.sleep(interval)
+
+def test_project_change_performance():
     process = psutil.Process()
 
     for count in ITERATIONS:
         print(f"Updating {count} projects...")
-        project_ids = [create_project() for _ in range(count)]
+        ids = [create_project() for _ in range(count)]
 
         start_time = time.time()
         start_memory = process.memory_info().rss
-        start_cpu = process.cpu_percent(interval=None)
 
-        for project_id in project_ids:
+        # Start CPU monitor
+        cpu_usage_log = []
+        running_flag = {"flag": True}
+        monitor_thread = threading.Thread(target=monitor_cpu, args=(process, 0.1, running_flag, cpu_usage_log))
+        monitor_thread.start()
+
+        for project_id in ids:
             update_project(project_id)
 
         end_time = time.time()
-        end_memory = process.memory_info().rss
-        end_cpu = process.cpu_percent(interval=None)
+        running_flag["flag"] = False
+        monitor_thread.join()
 
+        end_memory = process.memory_info().rss
         total_time = end_time - start_time
-        memory_used = (end_memory - start_memory) / 1024
-        cpu_used = end_cpu - start_cpu
+        memory_used = abs(end_memory - start_memory) / 1024 
+        avg_cpu = sum(cpu_usage_log) / len(cpu_usage_log) if cpu_usage_log else 0
 
         times.append(total_time)
         memory_usages.append(memory_used)
-        cpu_usages.append(cpu_used)
+        cpu_percentages.append(avg_cpu)
 
-        print(f"{count} projects → Time: {total_time:.2f}s, CPU: {cpu_used:.2f}%, Memory: {memory_used:.2f} KB")
+        print(f"{count} projects → Time: {total_time:.2f}s, CPU %: {avg_cpu:.2f}, Memory: {memory_used:.2f} KB")
 
     # Plotting
     plt.figure(figsize=(12, 6))
 
     plt.subplot(1, 3, 1)
     plt.plot(ITERATIONS, times, marker='o')
-    plt.title("Update Time")
+    plt.title("Execution Time")
     plt.xlabel("Number of Projects")
     plt.ylabel("Time (s)")
 
@@ -77,14 +88,14 @@ def test_change_project_performance():
     plt.ylabel("Memory (KB)")
 
     plt.subplot(1, 3, 3)
-    plt.plot(ITERATIONS, cpu_usages, marker='o')
-    plt.title("CPU Usage")
+    plt.plot(ITERATIONS, cpu_percentages, marker='o')
+    plt.title("CPU Usage (%)")
     plt.xlabel("Number of Projects")
     plt.ylabel("CPU %")
 
     plt.tight_layout()
     plt.savefig("project_change_graph.png")
-    plt.show()
+    plt.close()
 
 if __name__ == "__main__":
-    test_change_project_performance()
+    test_project_change_performance()

@@ -3,16 +3,15 @@ import psutil
 import requests
 import matplotlib.pyplot as plt
 from faker import Faker
+import threading
 
 fake = Faker()
 BASE_URL = 'http://localhost:4567/projects'
-
-# Iteration sizes
 ITERATIONS = [1, 10, 100, 500, 1000, 2000, 3000]
 
-# Tracking metrics
+# Tracking
 times = []
-cpu_usages = []
+cpu_percentages = []
 memory_usages = []
 
 def create_project():
@@ -23,13 +22,23 @@ def create_project():
         "active": False
     }
 
+def monitor_cpu(process, interval, running, usage_log):
+    while running["flag"]:
+        usage_log.append(process.cpu_percent(interval=interval))
+        time.sleep(interval)
+
 def test_add_project_performance():
     process = psutil.Process()
 
     for count in ITERATIONS:
-        start_time = time.time()
+        print(f"Adding {count} projects...")
         start_memory = process.memory_info().rss
-        start_cpu = process.cpu_percent(interval=None)
+        start_time = time.time()
+
+        cpu_usage_log = []
+        running_flag = {"flag": True}
+        monitor_thread = threading.Thread(target=monitor_cpu, args=(process, 0.1, running_flag, cpu_usage_log))
+        monitor_thread.start()
 
         for _ in range(count):
             data = create_project()
@@ -37,22 +46,23 @@ def test_add_project_performance():
             assert res.status_code == 201
 
         end_time = time.time()
-        end_memory = process.memory_info().rss
-        end_cpu = process.cpu_percent(interval=None)
+        running_flag["flag"] = False
+        monitor_thread.join()
 
+        end_memory = process.memory_info().rss
         total_time = end_time - start_time
-        memory_used = (end_memory - start_memory) / 1024  # KB
-        cpu_used = end_cpu - start_cpu
+        memory_used = abs(end_memory - start_memory) / 1024 
+        avg_cpu = sum(cpu_usage_log) / len(cpu_usage_log) if cpu_usage_log else 0
 
         times.append(total_time)
         memory_usages.append(memory_used)
-        cpu_usages.append(cpu_used)
+        cpu_percentages.append(avg_cpu)
 
-        print(f"{count} projects → Time: {total_time:.2f}s, CPU: {cpu_used:.2f}%, Memory: {memory_used:.2f} KB")
+        print(f"{count} projects → Time: {total_time:.2f}s, CPU %: {avg_cpu:.2f}, Memory: {memory_used:.2f} KB")
 
-    # Plotting results
+    # Plotting
     plt.figure(figsize=(12, 6))
-    
+
     plt.subplot(1, 3, 1)
     plt.plot(ITERATIONS, times, marker='o')
     plt.title("Execution Time")
@@ -66,14 +76,14 @@ def test_add_project_performance():
     plt.ylabel("Memory (KB)")
 
     plt.subplot(1, 3, 3)
-    plt.plot(ITERATIONS, cpu_usages, marker='o')
-    plt.title("CPU Usage")
+    plt.plot(ITERATIONS, cpu_percentages, marker='o')
+    plt.title("CPU Usage (%)")
     plt.xlabel("Number of Projects")
     plt.ylabel("CPU %")
 
     plt.tight_layout()
     plt.savefig("project_add_graph.png")
-    plt.show()
+    plt.close()
 
 if __name__ == "__main__":
     test_add_project_performance()
