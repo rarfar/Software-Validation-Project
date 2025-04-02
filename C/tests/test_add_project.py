@@ -32,7 +32,8 @@ def test_add_project_performance():
 
     for count in ITERATIONS:
         print(f"Adding {count} projects...")
-        start_memory = process.memory_info().rss
+
+        start_memory = psutil.virtual_memory().used  # SYSTEM memory tracking
         start_time = time.time()
 
         cpu_usage_log = []
@@ -49,9 +50,9 @@ def test_add_project_performance():
         running_flag["flag"] = False
         monitor_thread.join()
 
-        end_memory = process.memory_info().rss
+        end_memory = psutil.virtual_memory().used  # SYSTEM memory tracking
         total_time = end_time - start_time
-        memory_used = abs(end_memory - start_memory) / 1024 
+        memory_used = abs(end_memory - start_memory) / 1024  # in KB
         avg_cpu = sum(cpu_usage_log) / len(cpu_usage_log) if cpu_usage_log else 0
 
         times.append(total_time)
