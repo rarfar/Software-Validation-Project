@@ -1,4 +1,4 @@
-# ECSE429-Software-Validation-Project-A
+# ECSE429-Software-Validation-Project
  Part A: Exploratory Testing of Rest API\
  The application under test is a “rest api todo list manager” which may be run as a local host.\
  The application is made available by Alan Richardson and can be found online at:\
