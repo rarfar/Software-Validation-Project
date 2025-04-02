@@ -1,5 +1,4 @@
 # ECSE429-Software-Validation-Project
- Part A: Exploratory Testing of Rest API\
  The application under test is a “rest api todo list manager” which may be run as a local host.\
  The application is made available by Alan Richardson and can be found online at:\
  https://github.com/eviltester/thingifier/releases \
@@ -17,13 +16,13 @@ To launch the rest api todo list manager, enter this command from your console w
 
 Enter http://localhost:4567 in your web browser to view the App's GUI.
 
-### Running Pytest Tests
+### Running Pytest Tests (Part A)
 To execute the tests, navigate to the Softwate-Validation-Project directory in the terminal. Use ```pytest -v``` to run all tests.\
 To run them in a random order, install pytest-random-order with pip install pytest-random-order, then execute ```pytest -v --random-order```.\
 \
 You can run these tests consecutively, however, these tests add, alter and delete many elements in this app. To restore them to the default elements, you must shutdown the app and reboot it again from your console following the same steps as above.
 
-### Running Story Tests with Behave
+### Running Story Tests with Behave (Part B)
 To execute the story tests, navigate to the features directory and run: ```python -m behave```\
 This will execute all Gherkin feature files and validate API functionality.
 
