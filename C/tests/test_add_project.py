@@ -7,7 +7,7 @@ import threading
 
 fake = Faker()
 BASE_URL = 'http://localhost:4567/projects'
-ITERATIONS = [1, 10, 100, 500, 1000, 2000, 3000]
+ITERATIONS = [1, 10, 100, 500, 1000, 2000, 5000]
 
 # Tracking
 times = []
