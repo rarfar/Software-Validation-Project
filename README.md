@@ -31,6 +31,24 @@ This will execute all Gherkin feature files and validate API functionality.
 
 Enter http://localhost:4567/shutdown to terminate the app.
 
+### Performance Testing (Part C)
+Performance testing for the REST API was implemented using Python and psutil to track execution time, memory usage, and CPU utilization.
+
+* All performance test scripts are located in: C/tests/
+* 9 separate test files were written: Each test dynamically creates randomized data using the Faker library and logs performance as the number of operations increases. Each script also generates and saves a graph to visualize: Execution time, Memory usage and CPU percentage
+* Generated graphs are saved in the root of the tests/ folder as .png files (e.g., project_add_graph.png).
+
+### Static Analysis with SonarQube (Part C)
+Static code analysis was performed using SonarQube (Community Edition). After downloading and running SonarQube locally, a new project was created via the web interface at http://localhost:9000. The source code of the REST API (thingifier-master) was analyzed using Maven with the following command:
+```
+mvn clean verify sonar:sonar \
+  -DskipTests \
+  -Dsonar.projectKey=RestAPIProject \
+  -Dsonar.projectName=RestAPIProject \
+  -Dsonar.host.url=http://localhost:9000 \
+  -Dsonar.login=<your_token_here>
+```
+
 # Roles
 TODOS       - Ryan McGregor, 260 868 511 \
 PROJECTS    - Emmy Song, 261 049 871 \
