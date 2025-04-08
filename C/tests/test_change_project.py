@@ -4,6 +4,8 @@ import requests
 import matplotlib.pyplot as plt
 from faker import Faker
 import threading
+import subprocess
+session = requests.Session()
 
 fake = Faker()
 BASE_URL = "http://localhost:4567/projects"
@@ -14,8 +16,22 @@ times = []
 cpu_percentages = []
 memory_usages = []
 
+def start_api_server():
+    print("Starting API server...")
+    api_process = subprocess.Popen(["java", "-jar", "Application_Being_Tested/runTodoManagerRestAPI-1.5.5.jar"],
+        stdout=subprocess.DEVNULL,  # Suppress standard output
+        stderr=subprocess.DEVNULL   # Suppress standard error
+        )
+    time.sleep(5)  # Wait for the server to start
+    return api_process
+
+def stop_api_server(api_process):
+    print("Stopping API server...")
+    api_process.terminate()
+    api_process.wait()
+
 def create_project():
-    response = requests.post(BASE_URL, json={
+    response = session.post(BASE_URL, json={
         "title": fake.word(),
         "description": fake.sentence()
     })
@@ -43,7 +59,7 @@ def test_project_change_performance():
 
         for pid in ids:
             new_data = {"title": fake.word(), "description": fake.sentence()}
-            requests.post(f"{BASE_URL}/{pid}", json=new_data)
+            session.post(f"{BASE_URL}/{pid}", json=new_data)
 
         end_time = time.time()
         running_flag["flag"] = False
@@ -81,8 +97,12 @@ def test_project_change_performance():
     plt.ylabel("CPU (%)")
 
     plt.tight_layout()
-    plt.savefig("project_change_graph.png")
+    plt.savefig("C/graphs/project_change_graph.png")
     plt.close()
 
 if __name__ == "__main__":
-    test_project_change_performance()
+    server = start_api_server()
+    try:
+        test_project_change_performance()
+    finally:
+        stop_api_server(server)

@@ -4,6 +4,7 @@ import requests
 import matplotlib.pyplot as plt
 from faker import Faker
 import threading
+import subprocess
 session = requests.Session()
 
 fake = Faker()
@@ -14,6 +15,20 @@ ITERATIONS = [1, 10, 100, 500, 1000, 2000, 5000]
 times = []
 cpu_percentages = []
 memory_usages = []
+
+def start_api_server():
+    print("Starting API server...")
+    api_process = subprocess.Popen(["java", "-jar", "Application_Being_Tested/runTodoManagerRestAPI-1.5.5.jar"],
+        stdout=subprocess.DEVNULL,  # Suppress standard output
+        stderr=subprocess.DEVNULL   # Suppress standard error
+        )
+    time.sleep(5)  # Wait for the server to start
+    return api_process
+
+def stop_api_server(api_process):
+    print("Stopping API server...")
+    api_process.terminate()
+    api_process.wait()
 
 def create_todo():
     payload =  {
@@ -96,8 +111,13 @@ def test_todo_change_performance():
     plt.ylabel("CPU %")
 
     plt.tight_layout()
-    plt.savefig("todo_change_graph.png")
+    plt.savefig("C/graphs/project_change_graph.png")
+    plt.savefig("C/graphs/todo_change_graph.png")
     plt.close()
 
 if __name__ == "__main__":
-    test_todo_change_performance()
+    server = start_api_server()
+    try:
+        test_todo_change_performance()
+    finally:
+        stop_api_server(server)

@@ -4,6 +4,8 @@ import requests
 import matplotlib.pyplot as plt
 from faker import Faker
 import threading
+import subprocess
+session = requests.Session()
 
 fake = Faker() # used to generate titles and descriptions for testing
 BASE_URL = 'http://localhost:4567/todos'
@@ -13,6 +15,20 @@ ITERATIONS = [1, 10, 100, 500, 1000, 2000, 5000]
 times = []
 cpu_percentages = []
 memory_usages = []
+
+def start_api_server():
+    print("Starting API server...")
+    api_process = subprocess.Popen(["java", "-jar", "Application_Being_Tested/runTodoManagerRestAPI-1.5.5.jar"],
+        stdout=subprocess.DEVNULL,  # Suppress standard output
+        stderr=subprocess.DEVNULL   # Suppress standard error
+        )
+    time.sleep(5)  # Wait for the server to start
+    return api_process
+
+def stop_api_server(api_process):
+    print("Stopping API server...")
+    api_process.terminate()
+    api_process.wait()
 
 def create_todo():
     return {
@@ -41,7 +57,7 @@ def test_add_todo_performance():
 
         for _ in range(count):
             data = create_todo()
-            res = requests.post(BASE_URL, json=data)
+            res = session.post(BASE_URL, json=data)
             assert res.status_code == 201
 
         end_time = time.time()
@@ -82,11 +98,12 @@ def test_add_todo_performance():
     plt.ylabel("CPU %")
 
     plt.tight_layout()
-    plt.savefig("todo_add_graph.png")
+    plt.savefig("C/graphs/todo_add_graph.png")
     plt.close()
 
 if __name__ == "__main__":
-    test_add_todo_performance()
-
-#Ecse429!!!!!
-#sqp_b96a04140f40fb96380b972f22ca67731b4c4723
+    server = start_api_server()
+    try:
+        test_add_todo_performance()
+    finally:
+        stop_api_server(server)
